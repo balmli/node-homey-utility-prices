@@ -3,6 +3,7 @@
 /.github
 /.idea
 /lib
+/tests
 /.editorconfig
 /.eslintrc.json
 /tsconfig.json

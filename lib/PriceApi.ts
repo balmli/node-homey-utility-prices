@@ -1,7 +1,6 @@
-import {NordpoolPrice, NordpoolPrices} from "./types";
-import {MomentInput} from "./moment";
+import moment, {MomentInput} from 'moment-timezone';
 
-const moment = require('./moment-timezone-with-data');
+import {NordpoolPrice, NordpoolPrices} from "./types";
 
 export class PriceApi {
 
@@ -34,6 +33,50 @@ export class PriceApi {
             .sort((a, b) => a.price - b.price)
             .findIndex(p => this.toHour(p.startsAt) === currentHour);
         return Math.round((1 - withIndex / 23) * 1000000) / 1000000
+    };
+
+    priceLevels = [
+        {
+            code: 'VERY_CHEAP',
+            eval: 'X <= 0.60',
+            description: 'The price is smaller or equal to 60 % compared to average price.'
+        },
+        {
+            code: 'CHEAP',
+            eval: 'X > 0.60 && X <= 0.90',
+            description: 'The price is greater than 60 % and smaller or equal to 90 % compared to average price.'
+        },
+        {
+            code: 'NORMAL',
+            eval: 'X > 0.90 && X < 1.15',
+            description: 'The price is greater than 90 % and smaller than 115 % compared to average price.'
+        },
+        {
+            code: 'EXPENSIVE',
+            eval: 'X >= 1.15 && X < 1.40',
+            description: 'The price is greater or equal to 115 % and smaller than 140 % compared to average price.'
+        },
+        {
+            code: 'VERY_EXPENSIVE',
+            eval: 'X >= 1.40',
+            description: 'The price is greater or equal to 140 % compared to average price.'
+        },
+    ];
+
+    priceLevel = (prices: NordpoolPrices, aDate: MomentInput) => {
+        const price = this.currentPrice(prices, aDate);
+        const averagePrice = this.averagePricesStarting(prices, aDate, 0, 24);
+        if (price && averagePrice !== 0) {
+            try {
+                const share = price.price / averagePrice;
+                for (const pl of this.priceLevels) {
+                    if (eval(pl.eval.split("X").join(String(share)))) {
+                        return pl;
+                    }
+                }
+            } catch (err) {
+            }
+        }
     };
 
     priceHighLow = (prices: NordpoolPrices, aDate: MomentInput) => {

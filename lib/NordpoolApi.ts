@@ -1,8 +1,8 @@
-import {NordpoolData, NordpoolOptions, NordpoolPrice, NordpoolPrices} from "./types";
-import {Moment, MomentInput} from "./moment";
+import moment, {Moment, MomentInput} from 'moment-timezone';
 
 const http = require('http.min');
-const moment = require('./moment-timezone-with-data');
+
+import {NordpoolData, NordpoolOptions, NordpoolPrice, NordpoolPrices} from "./types";
 
 export class NordpoolApi {
 
@@ -21,7 +21,7 @@ export class NordpoolApi {
                 .filter(r => r && typeof r === 'object' && r.length > 0)
                 .flatMap(r => r)
                 .map(r => r as NordpoolPrice)
-                .sort((a,b) => a.time - b.time);
+                .sort((a, b) => a.time - b.time);
         } catch (err) {
             console.log('Fetching prices failed: ', err);
         }
@@ -54,7 +54,7 @@ export class NordpoolApi {
                     continue;
                 }
 
-                const startsAt = moment.tz(row.StartTime, "YYYY-MM-DD\Thh:mm:ss", 'Europe/Oslo').tz(timeZone);
+                const startsAt = moment.tz(row.StartTime, "YYYY-MM-DD\Thh:mm:ss", 'Europe/Oslo').tz(timeZone as string);
                 const time = startsAt.unix();
 
                 for (let j = 0; j < row.Columns.length; j++) {
@@ -69,7 +69,7 @@ export class NordpoolApi {
                     }
 
                     if (column.Name === opts.priceArea) {
-                        result.push({ startsAt, time, price });
+                        result.push({startsAt, time, price});
                     }
                 }
             }

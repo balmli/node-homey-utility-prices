@@ -146,7 +146,7 @@ export const PriceAreas: PriceAreas = [
 ];
 
 export interface NordpoolOptions {
-    currency: Currency;
+    currency: Currency | string;
     priceArea: string;
 }
 
