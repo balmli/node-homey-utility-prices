@@ -1,5 +1,9 @@
 /.git
 /.vscode
 /.github
+/.idea
+/lib
+/.editorconfig
 /.eslintrc.json
 /tsconfig.json
+/*.iml

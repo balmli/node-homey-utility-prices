@@ -1,6 +1,6 @@
 {
   "name": "@balmli/homey-utility-prices",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Price utility for Homey apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,10 @@
     "node": ">=16.0.0"
   },
   "scripts": {
+    "prebuild": "del dist/",
     "build": "tsc",
+    "watch": "tsc -w",
+    "postbuild": "cpy 'lib/**/*.js' 'lib/**/*.d.ts' dist",
     "test": "ts-mocha 'test/**/*.ts'"
   },
   "keywords": [
@@ -27,9 +30,14 @@
   },
   "homepage": "https://github.com/balmli/node-homey-utility-prices#readme",
   "license": "ISC",
+  "dependencies": {
+    "http.min": "2.1.0"
+  },
   "devDependencies": {
     "@types/mocha": "^9.1.1",
     "@types/node": "^16.11.12",
+    "cpy-cli": "^4.2.0",
+    "del-cli": "^3.0.0",
     "mocha": "^10.0.0",
     "ts-mocha": "^10.0.0",
     "ts-node": "^10.7.0",
