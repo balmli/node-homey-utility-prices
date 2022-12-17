@@ -1,0 +1,44 @@
+{
+  "extends": "athom",
+  "rules": {
+    "no-shadow": "off",
+    "no-undef": "off",
+    "consistent-return": "off",
+    "no-nested-ternary": "off",
+    "node/no-unsupported-features/node-builtins": "off",
+    "node/no-unsupported-features/es-syntax": [
+      "error",
+      { 
+        "ignores": ["modules"] 
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "max-len": [
+      "error",
+      200
+    ]
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    },
+    "node": {
+      "tryExtensions": [".js", ".json", ".node", ".ts", ".d.ts"]
+    }
+  }
+}
