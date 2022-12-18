@@ -56,17 +56,3 @@ export const calcHeating = function (aDate: Moment, atHome: boolean, homeOverrid
     }
 };
 
-export const checkHighPrice2 = function (prices: NordpoolPrices, high_hours: number, aDate: MomentInput, state: any, filter = true) {
-    return prices
-        .map(p => {
-            // @ts-ignore
-            p.heating = calcHeating(p.startsAt, state.atHome, state.homeOverride, state.heatingOptions);
-            return p;
-        })
-        // @ts-ignore
-        .filter(p => p.heating.heating === false)
-        .filter((p, idx) => idx % 2 === 0)
-        .sort((a, b) => b.price - a.price)
-        .slice(0, high_hours)
-        .filter(p => !filter || filter && p.startsAt.isSameOrBefore(aDate) && moment(p.startsAt).add(1, 'hour').startOf('hour').isAfter(aDate));
-};

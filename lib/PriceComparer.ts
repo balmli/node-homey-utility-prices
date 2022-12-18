@@ -2,7 +2,6 @@ import moment from 'moment-timezone';
 import {NordpoolPrices} from "./types";
 import {PriceApi} from "./PriceApi";
 
-
 export class PriceComparer {
 
     _prices: NordpoolPrices | undefined;
@@ -244,5 +243,26 @@ export class PriceComparer {
         const localTime = moment();
         return this._priceApi.currentPriceHigherThanNext(this._prices, localTime, args.hours);
     }
-    
+
+    heatingOffHighPriceComparer(args: any, state: any) {
+        if (!args.high_hours
+            || args.high_hours <= 0
+            || args.high_hours >= 24
+            || !this._prices) {
+            return false;
+        }
+
+        const localTime = moment();
+
+        // Finds prices starting at 00:00 today
+        const pricesNextHours = this._priceApi.pricesStarting(this._prices, localTime, 0, 24);
+        if (pricesNextHours.length === 0) {
+            return false;
+        }
+
+        // Check if high price now.  Must be ECO mode, and will skip consecutive hours.
+        const highPriceNow = this._priceApi.checkHighPrice2(pricesNextHours, args.high_hours, localTime, state);
+
+        return state.high_price === false && highPriceNow.length === 0 || state.high_price === true && highPriceNow.length === 1;
+    }
 }
