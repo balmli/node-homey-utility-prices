@@ -4,6 +4,7 @@
 /.idea
 /lib
 /tests
+/tests2
 /.editorconfig
 /.eslintrc.json
 /tsconfig.json

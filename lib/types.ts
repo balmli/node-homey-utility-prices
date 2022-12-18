@@ -176,3 +176,37 @@ export interface NordpoolPrice {
 }
 
 export type NordpoolPrices = NordpoolPrice[];
+
+export enum HolidayToday {
+    holiday = 'holiday',
+    not_holiday = 'not_holiday',
+    automatic = 'automatic',
+}
+
+export interface HeatingOptions {
+    workday: {
+        startHour: number,
+        endHour: number,
+    },
+    notWorkday: {
+        startHour: number,
+        endHour: number,
+    },
+    workHours: {
+        startHour: number,
+        endHour: number
+    },
+    country: string,
+    holiday_today?: HolidayToday
+}
+
+export interface HeatingResult {
+    date: string,
+    lDate: string,
+    atHome: boolean,
+    homeOverride: boolean,
+    day: boolean,
+    night: boolean,
+    atWork: boolean,
+    heating: boolean
+}

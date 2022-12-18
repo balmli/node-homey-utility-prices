@@ -1,6 +1,6 @@
 {
   "name": "@balmli/homey-utility-prices",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Price utility for Homey apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
     "prebuild": "del dist/",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register --timeout 10000 'tests/**/*.ts'"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register --timeout 10000 'tests/**/*.*'"
   },
   "keywords": [
     "node",
@@ -30,6 +30,7 @@
   "homepage": "https://github.com/balmli/node-homey-utility-prices#readme",
   "license": "ISC",
   "dependencies": {
+    "@balmli/homey-public-holidays": "^1.0.1",
     "http.min": "2.1.0",
     "moment-timezone": "0.5.40"
   },
