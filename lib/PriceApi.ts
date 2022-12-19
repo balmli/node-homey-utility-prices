@@ -211,11 +211,22 @@ export class PriceApi {
         return !!minOfPeriodToday && !!minOfFollowing && minOfFollowing.price >= minOfPeriodToday.price;
     }
 
-    daysPeriod = (aDate: MomentInput, start: string, end: string) => {
-        const starts = start.split(':');
-        const startHour = parseInt(starts[0]) + parseInt(starts[1]) / 60;
-        const ends = end.split(':');
-        let endHour = parseInt(ends[0]) + parseInt(ends[1]) / 60;
+    daysPeriod = (aDate: MomentInput, start: number | string, end: number | string) => {
+        let startHour;
+        let endHour;
+        if (typeof start === 'string') {
+            const
+                starts = start.split(':');
+            startHour = parseInt(starts[0]) + parseInt(starts[1]) / 60;
+        } else {
+            startHour = start;
+        }
+        if (typeof end === 'string') {
+            const ends = end.split(':');
+            endHour = parseInt(ends[0]) + parseInt(ends[1]) / 60;
+        } else {
+            endHour = end;
+        }
         if (startHour === endHour) {
             endHour += 24;
         }

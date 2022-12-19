@@ -25,7 +25,7 @@ const getHeatingOptions = (): HeatingOptions => {
     };
 };
 
-describe("Heating", function () {
+describe("heating.isWorkDay", function () {
 
     before(function () {
         moment.tz.setDefault('Europe/Oslo');

@@ -230,7 +230,7 @@ export class PriceComparer {
      * @param state
      * @param curTime
      */
-    priceLowestInPeriodComparer(args: { start: string, end: string, low_hours: number }, state: any, curTime?: Moment) {
+    priceLowestInPeriodComparer(args: { start: number | string, end: number | string, low_hours: number }, state: any, curTime?: Moment) {
         if (args.start === undefined
             || args.end === undefined
             || !args.low_hours
@@ -259,7 +259,7 @@ export class PriceComparer {
      * @param state
      * @param curTime
      */
-    priceHighestInPeriodComparer(args: { start: string, end: string, high_hours: number }, state: any, curTime?: Moment) {
+    priceHighestInPeriodComparer(args: { start: number | string, end: number | string, high_hours: number }, state: any, curTime?: Moment) {
         if (args.start === undefined
             || args.end === undefined
             || !args.high_hours
@@ -289,7 +289,7 @@ export class PriceComparer {
      * @param state
      * @param curTime
      */
-    priceLowestNextHoursComparer(args: { start: string, end: string, hours: number }, state: any, curTime?: Moment) {
+    priceLowestNextHoursComparer(args: { start: number | string, end: number | string, hours: number }, state: any, curTime?: Moment) {
         if (args.start === undefined
             || args.end === undefined
             || !args.hours
@@ -320,7 +320,7 @@ export class PriceComparer {
      * @param state
      * @param curTime
      */
-    priceHighestNextHoursComparer(args: { start: string, end: string, hours: number }, state: any, curTime?: Moment) {
+    priceHighestNextHoursComparer(args: { start: number | string, end: number | string, hours: number }, state: any, curTime?: Moment) {
         if (args.start === undefined
             || args.end === undefined
             || !args.hours

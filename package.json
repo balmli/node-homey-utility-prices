@@ -1,6 +1,6 @@
 {
   "name": "@balmli/homey-utility-prices",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Price utility for Homey apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,9 @@
     "prebuild": "del dist/",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register --timeout 10000 'tests/**/*.*'"
+    "pretest": "npm run build",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register --timeout 10000 'tests/**/*.*'",
+    "prepublish": "npm run test"
   },
   "keywords": [
     "node",
