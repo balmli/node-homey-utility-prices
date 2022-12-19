@@ -1,6 +1,6 @@
 {
   "name": "@balmli/homey-utility-prices",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Price utility for Homey apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

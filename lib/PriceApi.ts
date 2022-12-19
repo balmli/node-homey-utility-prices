@@ -99,7 +99,8 @@ export class PriceApi {
             .slice(0, num_hours);
     };
 
-    averagePricesStarting = (prices: NordpoolPrices, aDate: MomentInput, startHour: number, num_hours: number) => {
+    // TODO: return undefined for missing average?
+    averagePricesStarting = (prices: NordpoolPrices, aDate: MomentInput, startHour: number, num_hours: number): number => {
         const startingAt = moment(aDate).hour(startHour).startOf('hour');
         const arr = prices
             .filter(p => p.startsAt.isSameOrAfter(startingAt))

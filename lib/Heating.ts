@@ -16,8 +16,9 @@ const isDay = function (aDate: Moment, opts: HeatingOptions): boolean {
     return hour < endHour1 || hour >= startHour && hour < endHour2;
 };
 
-const isWorkDay = function (aDate: Moment, opts: HeatingOptions): boolean {
-    return !isHoliday(aDate, opts) && aDate.day() >= 1 && aDate.day() <= 5;
+export const isWorkDay = function (aDate: Moment, opts: HeatingOptions): boolean {
+    return opts.holiday_today === HolidayToday.not_holiday ||
+        !isHoliday(aDate, opts) && aDate.day() >= 1 && aDate.day() <= 5;
 };
 
 const isWorkTime = function (aDate: Moment, opts: HeatingOptions): boolean {
@@ -28,9 +29,9 @@ const isWorkTime = function (aDate: Moment, opts: HeatingOptions): boolean {
             hour >= opts.workHours.startHour || hour < opts.workHours.endHour);
 };
 
-const isHoliday = function (aDate: Moment, opts: HeatingOptions): boolean {
+export const isHoliday = function (aDate: Moment, opts: HeatingOptions): boolean {
     if (opts.holiday_today === HolidayToday.holiday || opts.holiday_today === HolidayToday.not_holiday) {
-        return opts.holiday_today === 'holiday';
+        return opts.holiday_today === HolidayToday.holiday;
     }
     let hd = holidays.isHoliday(opts.country || 'NO', aDate.toDate())
     if (hd === false) {
