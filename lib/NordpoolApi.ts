@@ -86,7 +86,11 @@ export class NordpoolApi {
                     continue;
                 }
 
-                const startsAt = moment.tz(row.StartTime, "YYYY-MM-DD\Thh:mm:ss", 'Europe/Oslo').tz(timeZone as string);
+                const startsAt = moment
+                    .tz(row.StartTime, "YYYY-MM-DD\Thh:mm:ss", 'Europe/Oslo')
+                    .tz(timeZone as string)
+                    .startOf('hour');
+
                 const time = startsAt.unix();
 
                 for (let j = 0; j < row.Columns.length; j++) {
