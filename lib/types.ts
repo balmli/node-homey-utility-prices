@@ -1,4 +1,4 @@
-export type MomentTs = any;
+import {Moment} from 'moment-timezone';
 
 export enum Currency {
     NOK = 'NOK',
@@ -170,7 +170,7 @@ export interface NordpoolData {
 }
 
 export interface NordpoolPrice {
-    startsAt: any,
+    startsAt: Moment,
     time: number,
     price: number
 }

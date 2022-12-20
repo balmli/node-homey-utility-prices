@@ -6,6 +6,12 @@ import {NordpoolData, NordpoolOptions, NordpoolPrice, NordpoolPrices} from "./ty
 
 export class NordpoolApi {
 
+    /**
+     * Fetch prices from Nordpool, for yesterday, today and tomorrow.
+     *
+     * @param aDate
+     * @param opts
+     */
     fetchPrices = async (aDate: MomentInput, opts: NordpoolOptions): Promise<NordpoolPrices> => {
         try {
             const oslo = moment().tz('Europe/Oslo');
@@ -27,6 +33,32 @@ export class NordpoolApi {
         }
 
         return [];
+    };
+
+    /**
+     * Fetch prices from Nordpool for a single day.
+     *
+     * @param aDate
+     * @param opts
+     */
+    fetchPricesForDay = async (aDate: MomentInput, opts: NordpoolOptions): Promise<NordpoolPrices | undefined> => {
+        try {
+            const ops = [
+                this.getHourlyPrices(moment(aDate), opts),
+            ];
+
+            const result = await Promise.all(ops.filter(o => !!o));
+
+            return result
+                .filter(r => r && typeof r === 'object' && r.length > 0)
+                .flatMap(r => r)
+                .map(r => r as NordpoolPrice)
+                .sort((a, b) => a.time - b.time);
+        } catch (err) {
+            console.log('Fetching prices failed: ', err);
+        }
+
+        return undefined;
     };
 
     private getHourlyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
