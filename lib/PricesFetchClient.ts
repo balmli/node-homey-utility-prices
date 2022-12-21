@@ -121,7 +121,7 @@ export class PricesFetchClient {
      * @param device
      * @private
      */
-    private async clearStorage(device: Device) {
+    async clearStorage(device: Device) {
         const keys = device.getStoreKeys();
         for (const key of keys) {
             if (key.startsWith(STORE_PREFIX)) {
