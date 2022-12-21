@@ -32,7 +32,7 @@ export class PricesFetchClient {
         toDate: Moment,
         options: NordpoolOptions,
         onlyIfMissing: boolean
-    ): Promise<void> {
+    ): Promise<NordpoolPrices> {
         const dates = this.getDateRange(fromDate, toDate);
         await this.clearStorageExcept(device, dates);
         for (const aDate of dates) {
@@ -43,6 +43,7 @@ export class PricesFetchClient {
                 }
             }
         }
+        return this.getPrices(device, fromDate, toDate, options);
     }
 
     /**

@@ -41,19 +41,19 @@ export const isHoliday = function (aDate: Moment, opts: HeatingOptions): boolean
     return (hdd.type === 'public' || hdd.type === 'bank');
 };
 
-export const calcHeating = function (aDate: Moment, atHome: boolean, homeOverride: boolean, opts: HeatingOptions): HeatingResult {
+export const calcHeating = function (aDate: Moment, atHome: boolean | undefined, homeOverride: boolean | undefined, opts: HeatingOptions): HeatingResult {
     let day = isDay(aDate, opts);
     let night = !day;
     let atWork = isWorkTime(aDate, opts);
     return {
         date: aDate.toISOString(),
         lDate: aDate.format('YYYY-MM-DDTHH:mm:ss'),
-        atHome: atHome,
-        homeOverride: homeOverride,
+        atHome: atHome === true,
+        homeOverride: homeOverride === true,
         day: day,
         night: night,
         atWork: atWork,
-        heating: atHome && !night && !atWork || homeOverride && !night
+        heating: (atHome === true) && !night && !atWork || (homeOverride === true) && !night
     }
 };
 
