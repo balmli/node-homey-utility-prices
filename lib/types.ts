@@ -210,3 +210,32 @@ export interface HeatingResult {
     atWork: boolean,
     heating: boolean
 }
+
+export enum PriceFetcherMethod {
+    nordpool = 'nordpool',
+    utilityPriceClient = 'utilityPriceClient',
+    disabled = 'disabled',
+}
+
+export class PriceFetcherOptions {
+    prevDays: number; // Number of days in the past day to fetch. Default 1 (yesterday)
+    nextDays: number; // Number of days in the future to fetch. Default 1 (tomorrow)
+    nordpoolOptions?: NordpoolOptions;
+    fetchMethod?: PriceFetcherMethod;
+    fetchTime?: number; // Seconds in the hour to fetch data
+
+    constructor({prevDays, nextDays, nordpoolOptions, fetchMethod, fetchTime}: {
+        prevDays?: number,
+        nextDays?: number,
+        nordpoolOptions?: NordpoolOptions,
+        fetchMethod?: PriceFetcherMethod,
+        fetchTime?: number
+    }) {
+        this.prevDays = prevDays || 1;
+        this.nextDays = nextDays || 1;
+        this.nordpoolOptions = nordpoolOptions;
+        this.fetchMethod = fetchMethod || PriceFetcherMethod.nordpool;
+        this.fetchTime = fetchTime;
+    }
+
+}

@@ -1,6 +1,6 @@
 {
   "name": "@balmli/homey-utility-prices",
-  "version": "1.1.8",
+  "version": "1.2.7",
   "description": "Price utility for Homey apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,6 +33,7 @@
   "license": "ISC",
   "dependencies": {
     "@balmli/homey-public-holidays": "^1.0.1",
+    "@balmli/homey-utility-prices-client": "^1.0.0",
     "http.min": "2.1.0",
     "moment-timezone": "0.5.40"
   },
