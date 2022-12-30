@@ -88,6 +88,13 @@ export class PricesFetchClient {
             }
         }
         return allPrices
+            .map((p: any) => {
+                return {
+                    startsAt: moment(p.time * 1000),
+                    time: p.time,
+                    price: p.price,
+                }
+            })
             .sort((a, b) => a.time - b.time);
     }
 
