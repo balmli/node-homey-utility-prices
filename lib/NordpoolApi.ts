@@ -1,10 +1,24 @@
 import moment, {Moment, MomentInput} from 'moment-timezone';
+import {
+    NordpoolColumn,
+    NordpoolData,
+    NordpoolOptions,
+    NordpoolPrice,
+    NordpoolPrices
+} from "./types";
 
 const http = require('http.min');
 
-import {NordpoolData, NordpoolOptions, NordpoolPrice, NordpoolPrices} from "./types";
 
 export class NordpoolApi {
+
+    logger: any;
+
+    constructor({logger}: {
+        logger: any
+    }) {
+        this.logger = logger;
+    }
 
     /**
      * Fetch prices from Nordpool, for yesterday, today and tomorrow.
@@ -29,7 +43,7 @@ export class NordpoolApi {
                 .map(r => r as NordpoolPrice)
                 .sort((a, b) => a.time - b.time);
         } catch (err) {
-            console.log('Fetching prices failed: ', err);
+            this.logger.error('Fetching prices failed: ', err);
         }
 
         return [];
@@ -43,21 +57,54 @@ export class NordpoolApi {
      */
     fetchPricesForDay = async (aDate: MomentInput, opts: NordpoolOptions): Promise<NordpoolPrices | undefined> => {
         try {
-            const ops = [
-                this.getHourlyPrices(moment(aDate), opts),
-            ];
-
-            const result = await Promise.all(ops.filter(o => !!o));
-
-            return result
-                .filter(r => r && typeof r === 'object' && r.length > 0)
-                .flatMap(r => r)
-                .map(r => r as NordpoolPrice)
-                .sort((a, b) => a.time - b.time);
+            return await this.getHourlyPrices(moment(aDate), opts);
         } catch (err) {
-            console.log('Fetching prices failed: ', err);
+            this.logger.error('Fetching prices failed: ', err);
         }
 
+        return undefined;
+    };
+
+    /**
+     * Fetch daily average prices for a month.
+     *
+     * @param aDate
+     * @param opts
+     */
+    fetchDailyPrices = async (aDate: MomentInput, opts: NordpoolOptions): Promise<NordpoolPrices | undefined> => {
+        try {
+            return this.getDailyPrices(moment(aDate), opts);
+        } catch (err) {
+            this.logger.error('Fetching daily average prices failed: ', err);
+        }
+
+        return undefined;
+    };
+
+    /**
+     * Fetch monhtly average price for a month.
+     *
+     * @param aDate
+     * @param opts
+     */
+    fetchMonthlyAverage = async (aDate: MomentInput, opts: NordpoolOptions): Promise<number | undefined> => {
+        try {
+            const dailyPrices = await this.fetchDailyPrices(moment(aDate), opts);
+            if (!dailyPrices) {
+                return undefined;
+            }
+
+            let sumPrice = 0;
+            let days = 0;
+            for (let row of dailyPrices) {
+                sumPrice += row.price;
+                days += 1;
+            }
+
+            return days > 0 ? sumPrice / days : 0;
+        } catch (err) {
+            this.logger.error('Fetching monthly average failed: ', err);
+        }
         return undefined;
     };
 
@@ -71,6 +118,24 @@ export class NordpoolApi {
                 }
             );
             return this.parseResult(data as NordpoolData, opts);
+        } catch (err) {
+            throw err;
+        }
+    };
+
+    private getDailyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
+        try {
+            const startOfMonth = momnt.startOf('month');
+            const startOfNextMonth = moment(startOfMonth).add(1, 'month');
+
+            const data = await http.json({
+                    uri: 'https://www.nordpoolgroup.com/api/marketdata/page/24?' +
+                        'currency=,' + opts.currency + ',' + opts.currency + ',' + opts.currency,
+                    timeout: 30000
+                }
+            );
+            const prices = this.parseResult(data as NordpoolData, opts);
+            return prices.filter(p => p.startsAt.isSameOrAfter(startOfMonth) && p.startsAt.isBefore(startOfNextMonth));
         } catch (err) {
             throw err;
         }
@@ -99,7 +164,7 @@ export class NordpoolApi {
                         continue;
                     }
 
-                    const price = Math.round(100000 * (parseFloat(column.Value.replace(/,/, '.').replace(' ', '')) / 1000.0)) / 100000;
+                    const price = this.parsePrice(column);
                     if (isNaN(price)) {
                         continue;
                     }
@@ -112,5 +177,9 @@ export class NordpoolApi {
         }
         return result;
     };
+
+    parsePrice = (column: NordpoolColumn): number => {
+        return Math.round(100000 * (parseFloat(column.Value.replace(/,/, '.').replace(' ', '')) / 1000.0)) / 100000;
+    }
 
 }

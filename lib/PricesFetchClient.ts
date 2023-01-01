@@ -9,12 +9,13 @@ const STORE_PREFIX = 'prices-';
 export class PricesFetchClient {
 
     logger: any;
-    nordpool = new NordpoolApi();
+    nordpool: NordpoolApi;
 
     constructor({logger}: {
         logger: any
     }) {
         this.logger = logger;
+        this.nordpool = new NordpoolApi({logger});
     }
 
     /**

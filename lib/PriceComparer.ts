@@ -482,4 +482,68 @@ export class PriceComparer {
 
         return !state.high_price && highPriceNow.length === 0 || state.high_price && highPriceNow.length === 1;
     }
+
+    /**
+     * Current price is !{{|not}} among the [[num_hours]] highest / lowest hours before [[time]]
+     *
+     * Condition to check if the current price is among the X highest / lowest hours before a time of day.
+     *
+     * @param args
+     * @param state
+     * @param curTime
+     */
+    currentPriceAmongBeforeTimeComparer(args: { num_hours: number, time: number | string }, state: { high_price: boolean }, curTime?: Moment): boolean {
+        if (args.time === undefined
+            || args.num_hours <= 0
+            || args.num_hours >= 24) {
+            this.logDebug(`currentPriceAmongBeforeTimeComparer: missing params`);
+            return false;
+        }
+        if (!this._prices) {
+            this.logDebug(`currentPriceAmongBeforeTimeComparer: missing prices`);
+            return false;
+        }
+
+        const localTime = curTime ? curTime : moment();
+        const {startTs, endTs} = this._priceApi.daysPeriod(localTime, localTime.hour(), args.time);
+
+        //console.log(args, state, localTime, startTs, endTs);
+
+        return state.high_price ?
+            this._priceApi.pricesHighestInPeriod(this._prices, localTime, startTs, endTs, args.num_hours) :
+            this._priceApi.pricesLowestInPeriod(this._prices, localTime, startTs, endTs, args.num_hours);
+    }
+
+    /**
+     * Current price is !{{|not}} among the [[num_hours]] highest / lowest hours in the next [[next_hours]] hours
+     *
+     * Condition to check if the current price is among the X highest / lowest hours the next Y hours.
+     *
+     * @param args
+     * @param state
+     * @param curTime
+     */
+    currentPriceAmongNextHoursComparer(args: { num_hours: number, next_hours: number }, state: { high_price: boolean }, curTime?: Moment): boolean {
+        if (args.num_hours <= 0
+            || args.num_hours >= 24
+            || args.next_hours <= 0
+            || args.next_hours >= 24
+        ) {
+            this.logDebug(`currentPriceAmongNextHoursComparer: missing params`);
+            return false;
+        }
+        if (!this._prices) {
+            this.logDebug(`currentPriceAmongNextHoursComparer: missing prices`);
+            return false;
+        }
+
+        const localTime = curTime ? curTime : moment();
+
+        const startTs = moment(localTime).startOf('hour');
+        const endTs = moment(localTime).startOf('hour').add(args.next_hours, 'hour');
+
+        return state.high_price ?
+            this._priceApi.pricesHighestInPeriod(this._prices, localTime, startTs, endTs, args.num_hours) :
+            this._priceApi.pricesLowestInPeriod(this._prices, localTime, startTs, endTs, args.num_hours);
+    }
 }

@@ -6,10 +6,10 @@ import {Currency, NordpoolApi} from "../lib";
 
 moment.tz.setDefault("Europe/Oslo");
 
-describe('Fetch prices', function () {
+describe('Fetch monthly average', function () {
 
-    describe('Check fetch prices', function () {
-        it('Check fetch prices 1', function (done) {
+    describe('Check monthly average', function () {
+        it('Check monthly average 1', function (done) {
             const api = new NordpoolApi({
                 logger: new Logger({
                     logLevel: 3,
@@ -17,9 +17,9 @@ describe('Fetch prices', function () {
                 })
             });
             const localTime = moment().startOf('day');
-            api.fetchPrices(localTime, {priceArea: 'Bergen', currency: Currency.NOK})
-                .then((prices) => {
-                    //console.log(prices);
+            api.fetchMonthlyAverage(localTime, {priceArea: 'Bergen', currency: Currency.NOK})
+                .then((avg) => {
+                    //console.log(avg);
                     done();
                 })
                 .catch((err) => {
