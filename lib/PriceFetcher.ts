@@ -96,8 +96,9 @@ export class PriceFetcher extends EventEmitter {
                 this.clearUpdatePrice();
             }
 
+            const {fromDate, toDate, options} = this.getFetchParameters();
+
             if (this.priceFetcherOptions.fetchMethod == PriceFetcherMethod.nordpool) {
-                const {fromDate, toDate, options} = this.getFetchParameters();
                 const prices = await this.pricesFetchClient.fetchSpotPricesInRange(this.device, fromDate, toDate, options, false);
                 this.emit('prices', prices);
                 this.logger.verbose(`Price Fetcher: fetched prices from Nordpool: ${prices.length}`)
@@ -118,6 +119,9 @@ export class PriceFetcher extends EventEmitter {
                 }
             }
 
+            const monthlyAverage = await this.pricesFetchClient.fetchMonthlyAverage(this.device, moment(), options);
+            this.logger.info('monthlyAverage: ', monthlyAverage);
+            this.emit('monthlyAverage', monthlyAverage);
         } catch (err) {
             this.logger.error(err);
         } finally {
