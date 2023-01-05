@@ -1,4 +1,4 @@
-import moment, {Moment} from 'moment-timezone';
+import moment, {Moment, MomentInput} from 'moment-timezone';
 import {Device} from "homey";
 
 import {NordpoolApi} from "./NordpoolApi";
@@ -99,6 +99,21 @@ export class PricesFetchClient {
             .sort((a, b) => a.time - b.time);
     }
 
+    /**
+     * Fetch monhtly average price for a month.
+     *
+     * @param device
+     * @param aDate
+     * @param options
+     */
+    fetchMonthlyAverage = async (
+        device: Device,
+        aDate: Moment,
+        options: NordpoolOptions
+    ): Promise<number | undefined> => {
+        const prices = await this.nordpool.fetchMonthlyAverage(aDate, options);
+        return prices;
+    }
 
     private cachePrefix(aDate: Moment) {
         return `${STORE_PREFIX}${aDate.format().substring(0, 10)}-`;
