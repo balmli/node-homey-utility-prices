@@ -5,6 +5,7 @@ import {NordpoolApi} from "./NordpoolApi";
 import {NordpoolOptions, NordpoolPrices} from "./types";
 
 const STORE_PREFIX = 'prices-';
+const STORE_MONTHLY_AVG = 'sum10-';
 
 export class PricesFetchClient {
 
@@ -111,7 +112,55 @@ export class PricesFetchClient {
         aDate: Moment,
         options: NordpoolOptions
     ): Promise<number | undefined> => {
-        return await this.nordpool.fetchMonthlyAverage(aDate, options);
+        this.logger.debug(`fetchMonthlyAverage: ${aDate.format()}, options: ${JSON.stringify(options)}`)
+
+        await this.clearMonthlyAvgStorageExcept(device, aDate);
+
+        const dailyPrices = await this.nordpool.fetchDailyPrices(aDate, options);
+        if (!dailyPrices) {
+            return undefined;
+        }
+
+        const dayOfMonth = aDate.date();
+        const startOfMonth = moment(aDate).startOf('month');
+        const day10th = moment(startOfMonth).add(9, 'day');
+        const day11th = moment(day10th).add(1, 'day');
+
+        this.logger.debug(`fetchMonthlyAverage: ${aDate.format()}, ${dayOfMonth}, ${startOfMonth}, ${day10th}, ${day11th}`)
+
+        const hasPricesFirst10days = dailyPrices
+            .find(p => p.startsAt.isSameOrAfter(day10th)) !== undefined;
+
+        this.logger.debug(`fetchMonthlyAverage: ${aDate.format()}, options: ${JSON.stringify(options)} => hasPricesFirst10days: ${hasPricesFirst10days}`)
+
+        if (hasPricesFirst10days) {
+            const sumFirst10days = dailyPrices
+                .filter(p => p.startsAt.isSameOrAfter(startOfMonth) && p.startsAt.isBefore(day11th))
+                .map(p => p.price)
+                .reduce((a, b) => a + b, 0);
+
+            this.logger.debug(`fetchMonthlyAverage: => sumFirst10days: ${sumFirst10days}`)
+
+            this.storeSum10DaysInStorage(device, aDate, sumFirst10days, options);
+        } else if (dayOfMonth >= 15) {
+            const sumFirst10Days = this.getSum10DaysFromStorage(device, aDate, options);
+            if (!!sumFirst10Days) {
+                const sumAfterDay10 = dailyPrices
+                    .filter(p => p.startsAt.isAfter(day10th))
+                    .map(p => p.price)
+                    .reduce((a, b) => a + b, 0);
+
+                const ret2 = (sumFirst10Days + sumAfterDay10) / dayOfMonth;
+                this.logger.debug(`fetchMonthlyAverage: ${aDate.format()}, options: ${JSON.stringify(options)} => ${sumFirst10Days} + ${sumAfterDay10} => monthly average from storage: ${ret2}`)
+                return ret2;
+            }
+        }
+
+        const ret = dailyPrices
+            .map(p => p.price)
+            .reduce((a, b) => a + b, 0) / dailyPrices.length;
+        this.logger.debug(`fetchMonthlyAverage: ${aDate.format()}, options: ${JSON.stringify(options)} => monthly average = ${ret}`)
+        return ret;
     }
 
     private cachePrefix(aDate: Moment) {
@@ -130,12 +179,33 @@ export class PricesFetchClient {
 
     private async storePricesInStorage(device: Device, aDate: Moment, prices: NordpoolPrices, options: NordpoolOptions): Promise<void> {
         const key = this.cacheId(aDate, options);
-        await device.setStoreValue(key, prices);
+        await device.setStoreValue(key, prices).catch(err => this.logger.error(err));
     }
 
     private getPricesFromStorage(device: Device, aDate: Moment, options: NordpoolOptions): NordpoolPrices | undefined {
         const key = this.cacheId(aDate, options);
-        return device.getStoreValue(key)
+        return device.getStoreValue(key);
+    }
+
+    private cachePrefixSum10Days(aDate: Moment) {
+        return `${STORE_MONTHLY_AVG}${aDate.format().substring(0, 7)}-`;
+    }
+
+    private cacheIdSum10Days(aDate: Moment, options: NordpoolOptions) {
+        return `${this.cachePrefixSum10Days(aDate)}${options.currency}-${options.priceArea}`;
+    }
+
+    private async storeSum10DaysInStorage(device: Device, aDate: Moment, sum10FirstDays: number, options: NordpoolOptions): Promise<void> {
+        const key = this.cacheIdSum10Days(aDate, options);
+        await device.setStoreValue(key, sum10FirstDays).catch(err => this.logger.error(err));
+        this.logger.debug(`storeSum10DaysInStorage: ${key} = ${sum10FirstDays}`)
+    }
+
+    private getSum10DaysFromStorage(device: Device, aDate: Moment, options: NordpoolOptions): number | undefined {
+        const key = this.cacheIdSum10Days(aDate, options);
+        const ret = device.getStoreValue(key);
+        this.logger.debug(`getSum10DaysFromStorage: ${key} = ${ret}`)
+        return ret;
     }
 
     /**
@@ -148,7 +218,7 @@ export class PricesFetchClient {
         const keys = device.getStoreKeys();
         for (const key of keys) {
             if (key.startsWith(STORE_PREFIX)) {
-                await device.unsetStoreValue(key);
+                await device.unsetStoreValue(key).catch(err => this.logger.error(err));
             }
         }
     }
@@ -165,7 +235,25 @@ export class PricesFetchClient {
         const keys = device.getStoreKeys();
         for (const key of keys) {
             if (key.startsWith(STORE_PREFIX) && keepKeys.filter(kk => key.startsWith(kk)).length === 0) {
-                await device.unsetStoreValue(key);
+                await device.unsetStoreValue(key).catch(err => this.logger.error(err));
+            }
+        }
+    }
+
+    /**
+     * Clear 'day 1-10 sum price' in storage, except for specified date.
+     *
+     * @param device
+     * @param aDate do not clear for date
+     * @private
+     */
+    private async clearMonthlyAvgStorageExcept(device: Device, aDate: Moment): Promise<any> {
+        const keepKey = this.cachePrefixSum10Days(aDate);
+        const keys = device.getStoreKeys();
+        for (const key of keys) {
+            if (key.startsWith(STORE_MONTHLY_AVG) && !key.startsWith(keepKey)) {
+                this.logger.debug(`clearMonthlyAvgStorageExcept: clear key: ${key}`)
+                await device.unsetStoreValue(key).catch(err => this.logger.error(err));
             }
         }
     }

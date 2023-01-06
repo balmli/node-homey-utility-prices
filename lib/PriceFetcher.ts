@@ -63,6 +63,10 @@ export class PriceFetcher extends EventEmitter {
         this.priceFetcherOptions.fetchMethod = fetchMethod;
     }
 
+    setFetchMonthlyAverage(fetchMonthlyAverage: boolean) {
+        this.priceFetcherOptions.fetchMonthlyAverage = fetchMonthlyAverage;
+    }
+
     private clearFetchData() {
         if (this.fetchTimeout) {
             this.device.homey.clearTimeout(this.fetchTimeout);
@@ -119,9 +123,11 @@ export class PriceFetcher extends EventEmitter {
                 }
             }
 
-            const monthlyAverage = await this.pricesFetchClient.fetchMonthlyAverage(this.device, moment(), options);
-            this.logger.info('monthlyAverage: ', monthlyAverage);
-            this.emit('monthlyAverage', monthlyAverage);
+            if (this.priceFetcherOptions.fetchMonthlyAverage) {
+                const monthlyAverage = await this.pricesFetchClient.fetchMonthlyAverage(this.device, moment(), options);
+                this.logger.verbose('monthlyAverage: ', monthlyAverage);
+                this.emit('monthlyAverage', monthlyAverage);
+            }
         } catch (err) {
             this.logger.error(err);
         } finally {

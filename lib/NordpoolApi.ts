@@ -81,33 +81,6 @@ export class NordpoolApi {
         return undefined;
     };
 
-    /**
-     * Fetch monhtly average price for a month.
-     *
-     * @param aDate
-     * @param opts
-     */
-    fetchMonthlyAverage = async (aDate: MomentInput, opts: NordpoolOptions): Promise<number | undefined> => {
-        try {
-            const dailyPrices = await this.fetchDailyPrices(moment(aDate), opts);
-            if (!dailyPrices) {
-                return undefined;
-            }
-
-            let sumPrice = 0;
-            let days = 0;
-            for (let row of dailyPrices) {
-                sumPrice += row.price;
-                days += 1;
-            }
-
-            return days > 0 ? sumPrice / days : 0;
-        } catch (err) {
-            this.logger.error('Fetching monthly average failed: ', err);
-        }
-        return undefined;
-    };
-
     private getHourlyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
         try {
             const data = await http.json({
