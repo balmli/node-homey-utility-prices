@@ -63,6 +63,10 @@ export class PriceFetcher extends EventEmitter {
         this.priceFetcherOptions.fetchMethod = fetchMethod;
     }
 
+    setAdjustFinancialSupport(adjustFinancialSupport: boolean) {
+        this.priceFetcherOptions.adjustFinancialSupport = adjustFinancialSupport;
+    }
+
     setFetchMonthlyAverage(fetchMonthlyAverage: boolean) {
         this.priceFetcherOptions.fetchMonthlyAverage = fetchMonthlyAverage;
     }
@@ -104,6 +108,7 @@ export class PriceFetcher extends EventEmitter {
 
             if (this.priceFetcherOptions.fetchMethod == PriceFetcherMethod.nordpool) {
                 const prices = await this.pricesFetchClient.fetchSpotPricesInRange(this.device, fromDate, toDate, options, false);
+                this.adjustFinancialSupport(prices);
                 this.emit('prices', prices);
                 this.logger.verbose(`Price Fetcher: fetched prices from Nordpool: ${prices.length}`)
             } else if (this.priceFetcherOptions.fetchMethod == PriceFetcherMethod.utilityPriceClient) {
@@ -169,6 +174,7 @@ export class PriceFetcher extends EventEmitter {
             if (this.priceFetcherOptions.fetchMethod == PriceFetcherMethod.nordpool) {
                 const {fromDate, toDate, options} = this.getFetchParameters();
                 const prices = this.pricesFetchClient.getPrices(this.device, fromDate, toDate, options);
+                this.adjustFinancialSupport(prices);
                 await this.onSpotPrices(prices);
             }
         } catch (err) {
@@ -190,6 +196,16 @@ export class PriceFetcher extends EventEmitter {
             }
         } catch (err) {
             this.logger.error(err);
+        }
+    }
+
+    private adjustFinancialSupport(prices: NordpoolPrices): void {
+        if (this.priceFetcherOptions.adjustFinancialSupport) {
+            for (const price of prices) {
+                if (price.price > 0.7) {
+                    price.price = Math.round((0.7 + (price.price - 0.7) * 0.1) * 10000000) / 10000000;
+                }
+            }
         }
     }
 

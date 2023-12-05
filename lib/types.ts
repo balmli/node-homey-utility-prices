@@ -222,6 +222,7 @@ export class PriceFetcherOptions {
     nextDays: number; // Number of days in the future to fetch. Default 1 (tomorrow)
     nordpoolOptions?: NordpoolOptions;
     fetchMethod?: PriceFetcherMethod;
+    adjustFinancialSupport?: boolean; // Adjust for "strømstøtte"
     fetchMonthlyAverage?: boolean; // Shall fetch monthly average ?
     fetchTime?: number; // Seconds in the hour to fetch data
 
