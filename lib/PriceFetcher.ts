@@ -202,8 +202,8 @@ export class PriceFetcher extends EventEmitter {
     private adjustFinancialSupport(prices: NordpoolPrices): void {
         if (this.priceFetcherOptions.adjustFinancialSupport) {
             for (const price of prices) {
-                if (price.price > 0.7) {
-                    price.price = Math.round((0.7 + (price.price - 0.7) * 0.1) * 10000000) / 10000000;
+                if (price.price > 0.73) {
+                    price.price = Math.round((0.73 + (price.price - 0.73) * 0.1) * 10000000) / 10000000;
                 }
             }
         }
