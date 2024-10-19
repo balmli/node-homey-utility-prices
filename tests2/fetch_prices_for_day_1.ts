@@ -6,7 +6,7 @@ import {Currency, NordpoolApi} from "../lib";
 
 moment.tz.setDefault("Europe/Oslo");
 
-describe('Fetch prices', function () {
+describe('Fetch prices for day', function () {
 
     describe('Check fetch prices for day', function () {
         it('Check fetch prices for day 1', function (done) {

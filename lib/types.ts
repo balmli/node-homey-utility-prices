@@ -145,6 +145,15 @@ export const PriceAreas: PriceAreas = [
     }
 ];
 
+export const PRICE_AREA_MAP: { [key: string]: string } = {
+    'Oslo': 'NO1',
+    'Kr.sand': 'NO2',
+    'Bergen': 'NO5',
+    'Molde': 'NO3',
+    'Tr.heim': 'NO3',
+    'Tromsø': 'NO4',
+}
+
 export interface NordpoolOptions {
     currency: Currency | string;
     priceArea: string;

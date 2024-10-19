@@ -1,17 +1,14 @@
 import moment, {Moment, MomentInput} from 'moment-timezone';
 import {
-    NordpoolColumn,
-    NordpoolData,
     NordpoolOptions,
-    NordpoolPrice,
-    NordpoolPrices
+    NordpoolPrices,
+    PRICE_AREA_MAP
 } from "./types";
 
 const http = require('http.min');
 
-
 export class NordpoolApi {
-
+    private readonly API_URL = "https://dataportal-api.nordpoolgroup.com/api";
     logger: any;
 
     constructor({logger}: {
@@ -28,26 +25,22 @@ export class NordpoolApi {
      */
     fetchPrices = async (aDate: MomentInput, opts: NordpoolOptions): Promise<NordpoolPrices> => {
         try {
-            const oslo = moment().tz('Europe/Oslo');
-            const ops = [
-                moment(aDate).utcOffset() > oslo.utcOffset() ? this.getHourlyPrices(moment(aDate).add(-1, 'day'), opts) : undefined,
-                this.getHourlyPrices(moment(aDate), opts),
-                this.getHourlyPrices(moment(aDate).add(1, 'day'), opts)
-            ];
+            const yesterday = moment(aDate).subtract(1, 'day');
+            const today = moment(aDate);
+            const tomorrow = moment(aDate).add(1, 'day');
 
-            const result = await Promise.all(ops.filter(o => !!o));
+            const results = await Promise.all([
+                this.getHourlyPrices(yesterday, opts),
+                this.getHourlyPrices(today, opts),
+                this.getHourlyPrices(tomorrow, opts)
+            ]);
 
-            return result
-                .filter(r => r && typeof r === 'object' && r.length > 0)
-                .flatMap(r => r)
-                .map(r => r as NordpoolPrice)
-                .sort((a, b) => a.time - b.time);
+            return results.flat();
         } catch (err) {
             this.logger.error('Fetching prices failed: ', err);
+            return [];
         }
-
-        return [];
-    };
+    }
 
     /**
      * Fetch prices from Nordpool for a single day.
@@ -83,76 +76,112 @@ export class NordpoolApi {
 
     private getHourlyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
         try {
-            const data = await http.json({
-                    uri: 'https://www.nordpoolgroup.com/api/marketdata/page/10?' +
-                        'currency=,' + opts.currency + ',' + opts.currency + ',' + opts.currency +
-                        '&endDate=' + momnt.format('DD-MM-YYYY'),
-                    timeout: 30000
-                }
-            );
-            return this.parseResult(data as NordpoolData, opts);
+            const url = new URL(`${this.API_URL}/DayAheadPrices`);
+            url.searchParams.append('currency', opts.currency);
+            url.searchParams.append('market', 'DayAhead');
+            url.searchParams.append('deliveryArea', this.mapPriceArea(opts.priceArea));
+            url.searchParams.append('date', momnt.format('YYYY-MM-DD'));
+
+            const resp = await http.get({
+                uri: url.toString(),
+                headers: {
+                    'accept': 'application/json'
+                },
+                timeout: 30000
+            });
+
+            if (resp.response.statusCode === 204) {
+                return [];
+            }
+            if (resp.response.statusCode !== 200) {
+                throw new Error(`Invalid response from Nordpool API: ${resp.response.statusCode}, ${resp.response.statusMessage}`);
+            }
+
+            const data = JSON.parse(resp.data);
+            return this.parseHourlyResult(data, opts);
         } catch (err) {
             throw err;
         }
     };
 
-    private getDailyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
-        try {
-            const startOfMonth = momnt.startOf('month');
-            const startOfNextMonth = moment(startOfMonth).add(1, 'month');
-
-            const data = await http.json({
-                    uri: 'https://www.nordpoolgroup.com/api/marketdata/page/24?' +
-                        'currency=,' + opts.currency + ',' + opts.currency + ',' + opts.currency,
-                    timeout: 30000
-                }
-            );
-            const prices = this.parseResult(data as NordpoolData, opts);
-            return prices.filter(p => p.startsAt.isSameOrAfter(startOfMonth) && p.startsAt.isBefore(startOfNextMonth));
-        } catch (err) {
-            throw err;
+    private parseHourlyResult(data: any, opts: NordpoolOptions): NordpoolPrices {
+        if (data.currency !== opts.currency) {
+          throw new Error('Currency mismatch');
         }
-    };
 
-    private parseResult = (data: NordpoolData, opts: NordpoolOptions): NordpoolPrices => {
-        const timeZone = moment().tz();
         const result: NordpoolPrices = [];
-        if (data.data && data.data.Rows && data.data.Rows.length) {
-            for (var i = 0; i < data.data.Rows.length; i++) {
-                const row = data.data.Rows[i];
-                if (!row || row.IsExtraRow) {
-                    continue;
-                }
 
-                const startsAt = moment
-                    .tz(row.StartTime, "YYYY-MM-DD\Thh:mm:ss", 'Europe/Oslo')
-                    .tz(timeZone as string)
-                    .startOf('hour');
+        for (const entry of data.multiAreaEntries) {
+            const startsAt = moment(entry.deliveryStart);
+            const price = entry.entryPerArea[this.mapPriceArea(opts.priceArea)] / 1000;
+            result.push({
+                startsAt,
+                time: startsAt.unix(),
+                price
+            });
+        }
 
-                const time = startsAt.unix();
+        return result;
+    }
 
-                for (let j = 0; j < row.Columns.length; j++) {
-                    const column = row.Columns[j];
-                    if (!column) {
-                        continue;
-                    }
 
-                    const price = this.parsePrice(column);
-                    if (isNaN(price)) {
-                        continue;
-                    }
+  private getDailyPrices = async (momnt: Moment, opts: NordpoolOptions): Promise<NordpoolPrices> => {
+        const startOfMonth = momnt.startOf('month');
+        const startOfNextMonth = moment(startOfMonth).add(1, 'month');
 
-                    if (column.Name === opts.priceArea) {
-                        result.push({startsAt, time, price});
-                    }
-                }
+        try {
+            const url = new URL(`${this.API_URL}/AggregatePrices`);
+            url.searchParams.append('currency', opts.currency);
+            url.searchParams.append('market', 'DayAhead');
+            url.searchParams.append('deliveryArea', this.mapPriceArea(opts.priceArea));
+            url.searchParams.append('year', startOfMonth.format('YYYY'));
+
+            const resp = await http.get({
+                uri: url.toString(),
+                headers: {
+                    'accept': 'application/json'
+                },
+                timeout: 30000
+            });
+
+            if (resp.response.statusCode === 204) {
+                return [];
+            }
+            if (resp.response.statusCode !== 200) {
+                throw new Error(`Invalid response from Nordpool API: ${resp.response.statusCode}, ${resp.response.statusMessage}`);
+            }
+
+            const data = JSON.parse(resp.data);
+            return this.parseDailyResult(data, opts, startOfMonth, startOfNextMonth);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    private parseDailyResult(data: any, opts: NordpoolOptions, startOfMonth: Moment,  startOfNextMonth: Moment): NordpoolPrices {
+        const result: NordpoolPrices = [];
+
+        for (const entry of data.multiAreaDailyAggregates) {
+            const startsAt = moment(entry.deliveryStart);
+            if (startsAt.isSameOrAfter(startOfMonth) && startsAt.isBefore(startOfNextMonth)) {
+                const price = entry.averagePerArea[this.mapPriceArea(opts.priceArea)] / 1000;
+                result.push({
+                    startsAt,
+                    time: startsAt.unix(),
+                    price
+                });
             }
         }
-        return result;
-    };
 
-    parsePrice = (column: NordpoolColumn): number => {
-        return Math.round(100000 * (parseFloat(column.Value.replace(/,/, '.').replace(' ', '')) / 1000.0)) / 100000;
+        return result;
+    }
+
+    private mapPriceArea = (area: string): string => {
+        if (PRICE_AREA_MAP[area]) {
+            return PRICE_AREA_MAP[area];
+        }
+
+        return area;
     }
 
 }
