@@ -32,85 +32,85 @@ describe("heating.isHoliday", function () {
     });
 
     describe("Check isHoliday", function () {
-        it("Friday 02.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 2, 10, 0, 0, 0);
+        it("Friday 02.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 2, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: undefined
             })).to.equal(false);
         });
-        it("Friday 02.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 2, 10, 0, 0, 0);
+        it("Friday 02.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 2, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.automatic
             })).to.equal(false);
         });
-        it("Friday 02.12.2022, holiday set", function () {
-            const aDate = getDay(2022, 11, 2, 10, 0, 0, 0);
+        it("Friday 02.12.2027, holiday set", function () {
+            const aDate = getDay(2027, 11, 2, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.holiday
             })).to.equal(true);
         });
-        it("Friday 02.12.2022, not_holiday set", function () {
-            const aDate = getDay(2022, 11, 2, 10, 0, 0, 0);
+        it("Friday 02.12.2027, not_holiday set", function () {
+            const aDate = getDay(2027, 11, 2, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.not_holiday
             })).to.equal(false);
         });
-        it("Saturday 03.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 3, 10, 0, 0, 0);
+        it("Saturday 03.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 3, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: undefined
             })).to.equal(false);
         });
-        it("Saturday 03.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 3, 10, 0, 0, 0);
+        it("Saturday 03.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 3, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.automatic
             })).to.equal(false);
         });
-        it("Saturday 03.12.2022, holiday set", function () {
-            const aDate = getDay(2022, 11, 3, 10, 0, 0, 0);
+        it("Saturday 03.12.2027, holiday set", function () {
+            const aDate = getDay(2027, 11, 3, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.holiday
             })).to.equal(true);
         });
-        it("Saturday 03.12.2022, not_holiday set", function () {
-            const aDate = getDay(2022, 11, 3, 10, 0, 0, 0);
+        it("Saturday 03.12.2027, not_holiday set", function () {
+            const aDate = getDay(2027, 11, 3, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.not_holiday
             })).to.equal(false);
         });
-        it("Christmas Day 25.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 25, 10, 0, 0, 0);
+        it("Christmas Day 25.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 25, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: undefined
             })).to.equal(true);
         });
-        it("Christmas Day 25.12.2022, automatic", function () {
-            const aDate = getDay(2022, 11, 25, 10, 0, 0, 0);
+        it("Christmas Day 25.12.2027, automatic", function () {
+            const aDate = getDay(2027, 11, 25, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.automatic
             })).to.equal(true);
         });
-        it("Christmas Day 25.12.2022, holiday et ", function () {
-            const aDate = getDay(2022, 11, 25, 10, 0, 0, 0);
+        it("Christmas Day 25.12.2027, holiday et ", function () {
+            const aDate = getDay(2027, 11, 25, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.holiday
             })).to.equal(true);
         });
-        it("Christmas Day 25.12.2022, not_holiday set", function () {
-            const aDate = getDay(2022, 11, 25, 10, 0, 0, 0);
+        it("Christmas Day 25.12.2027, not_holiday set", function () {
+            const aDate = getDay(2027, 11, 25, 10, 0, 0, 0);
             expect(heating.isHoliday(aDate, {
                 ...getHeatingOptions(),
                 holiday_today: HolidayToday.not_holiday
